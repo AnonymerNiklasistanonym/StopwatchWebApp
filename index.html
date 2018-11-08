@@ -1,0 +1,83 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+	<!-- Charset/Encoding of website -->
+	<meta charset="utf-8">
+
+	<!-- HTML page title -->
+	<title>Stopwatch</title>
+
+	<!-- Description and author of website -->
+	<meta name="description" content="A stopwatch with laps">
+	<meta name="author" content="Niklas">
+
+	<!-- Enable viewport to display content relative to each device and not only to desktop -->
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<!-- Enable modern web app shortcut on mobile and desktop devices -->
+	<meta name="application-name" content="Stopwatch" />
+	<meta name="theme-color" content="#e5e5e5" />
+	<meta name="mobile-web-app-capable" content="yes">
+
+	<!-- Vector graphic favicon -->
+	<link rel="icon" type="image/svg+xml" href="./favicons/favicon.svg">
+
+	<!-- PNG fallback favicons -->
+	<link rel="icon" type="image/png" href="./favicons/favicon_64.png" sizes="64x64" />
+	<link rel="icon" type="image/png" href="./favicons/favicon_128.png" sizes="128x128" />
+	<link rel="icon" type="image/png" href="./favicons/favicon_256.png" sizes="256x256" />
+	<link rel="icon" type="image/png" href="./favicons/favicon_512.png" sizes="512x512" />
+
+	<!-- Link to keys.css made by michaelhue @https://github.com/michaelhue (https://github.com/michaelhue/keyscss | MIT) -->
+	<link rel="stylesheet" href="keys.css">
+
+	<!-- Custom style for stopwatch(.js) -->
+	<link rel="stylesheet" href="stopwatch.css">
+
+	<!-- Custom style for web page [Needs to be after everything to override the styles] -->
+	<link rel="stylesheet" href="styles.css">
+
+	<!-- Custom script for stopwatch -->
+	<script src="stopwatch.js"></script>
+
+	<!-- Script with implementation of stopwatch.js -->
+	<script src="script.js"></script>
+
+</head>
+
+<body>
+
+	<!-- Header of website -->
+	<header>
+		<h1>Stopwatch</h1>
+	</header>
+
+	<!-- Main body of website -->
+	<main>
+		<!-- Stopwatch clock display section -->
+		<section>
+			<h2>Watch</h2>
+			<div id="stopwatchWatchDiv"></div>
+		</section>
+		<!-- Stopwatch control buttons section -->
+		<section>
+			<h2>Controls</h2>
+			<ul id="stopwatchControlsUl"></ul>
+		</section>
+		<!-- Stopwatch lap list section -->
+		<section>
+			<h2>Laps</h2>
+			<ul id="stopwatchLapsUl"></ul>
+		</section>
+	</main>
+
+	<!-- Footer of website -->
+	<footer>
+		<p>Made in 2018</p>
+		<p class="beta_desktop">(Download the current state as JSON file with the key <kbd class="light">a</kbd>)</p>
+	</footer>
+</body>
+
+</html>
