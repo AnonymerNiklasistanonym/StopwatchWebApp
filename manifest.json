@@ -1,12 +1,12 @@
 {
     "name": "Stopwatch",
     "icons": [{
-            "src": "/favicons/favicon_192.png",
+            "src": "./favicons/favicon_192.png",
             "type": "image/png",
             "sizes": "192x192"
         },
         {
-            "src": "/favicons/favicon_512.png",
+            "src": "./favicons/favicon_512.png",
             "type": "image/png",
             "sizes": "512x512"
         }
