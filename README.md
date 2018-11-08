@@ -15,4 +15,4 @@ Install [`inkscape`](https://inkscape.org/) and run the script [`favicons/create
 ## Used resources
 
 - Favicon ([`favicons/favicon.svg`](favicons/favicon.svg)): [material.io](https://material.io/tools/icons/?search=time&icon=timer&style=baseline)
-- Css keyboard keys framework: [KEYS.css](https://github.com/michaelhue/keyscss)
+- CSS keyboard keys framework ([`keys.css`](keys.css)): [KEYS.css](https://github.com/michaelhue/keyscss)

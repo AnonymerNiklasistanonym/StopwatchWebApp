@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-# declare an array called array and define 3 vales
+# Declare an array with the image sizes to export
 array=( 64 128 256 512 )
 for i in "${array[@]}"
 do
-	echo "favicon_"$i".png"
+	# Export each size as a `png` favicon from `favicon.svg`
 	inkscape ".\favicon.svg" --export-png="favicon_"$i".png" --export-width=$i --export-height=$i --without-gui
 done
