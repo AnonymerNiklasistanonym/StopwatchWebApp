@@ -18,6 +18,13 @@ Open [`index.html`](index.html) with a browser.
 
 Install [`inkscape`](https://inkscape.org/) and run the script [`favicons/createPngFavicons.sh`](favicons/createPngFavicons.sh)
 
+## Build favicons (`.ico`)
+
+**Before doing the following you need to the previous step!**
+
+Install [`magick`](https://www.imagemagick.org/script/download.php#windows) and run the script [`favicons/createIcoFavicons.sh`](favicons/createIcoFavicons.sh)
+
+
 ## Used resources
 
 - Favicon ([`favicons/favicon.svg`](favicons/favicon.svg)): [material.io](https://material.io/tools/icons/?search=time&icon=timer&style=baseline)
