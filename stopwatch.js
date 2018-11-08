@@ -188,13 +188,25 @@ class HtmlControlsHandler {
     }
     this.controlsDivElement.id = 'stopwatch_controls_area'
     this.controlsDivElement.appendChild(this.getControl('start_stop', 'Start/Stop', 'S',
-      () => this.stopwatch.isRunning ? this.stopwatch.stop() : this.stopwatch.start()))
+      () => {
+        document.getElementById('start_stop').focus()
+        this.stopwatch.isRunning ? this.stopwatch.stop() : this.stopwatch.start()
+      }))
     this.controlsDivElement.appendChild(this.getControl('restart', 'Restart', 'R',
-      () => this.stopwatch.restart()))
+      () => {
+        document.getElementById('restart').focus()
+        this.stopwatch.restart()
+      }))
     this.controlsDivElement.appendChild(this.getControl('add_lap', 'Lap', 'L',
-      () => this.stopwatch.addLap()))
+      () => {
+        document.getElementById('add_lap').focus()
+        this.stopwatch.addLap()
+      }))
     this.controlsDivElement.appendChild(this.getControl('clear_laps', 'Clear laps', 'C',
-      () => this.stopwatch.clearLaps()))
+      () => {
+        document.getElementById('clear_laps').focus()
+        this.stopwatch.clearLaps()
+      }))
   }
   /**
    * Event listener
