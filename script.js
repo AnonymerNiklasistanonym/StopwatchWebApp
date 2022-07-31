@@ -31,8 +31,8 @@ document.addEventListener('DOMContentLoaded', event => {
    * @param {String} exportName
    */
   const downloadObjectAsJson = (exportObj, exportName) => {
-    var dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(exportObj, null, 4))
-    var downloadAnchorNode = document.createElement('a')
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(exportObj, null, 4))
+    const downloadAnchorNode = document.createElement('a')
     downloadAnchorNode.setAttribute('href', dataStr)
     downloadAnchorNode.setAttribute('download', exportName + '.json')
     document.body.appendChild(downloadAnchorNode) // required for firefox
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', event => {
 
   document.addEventListener('keydown', event => {
     // If 'a' is pressed return state as json
-    if (event.keyCode === 65) {
+    if (event.key === "a") {
       downloadObjectAsJson(stopwatch.state, 'stopwatch_state')
     }
   })

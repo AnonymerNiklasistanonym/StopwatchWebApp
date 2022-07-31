@@ -40,13 +40,13 @@ class StopwatchApi {
   }
   get state () {
     return {
-      laps: this.stopwatch.laps.map(time => ({
-        humanReadableTime: TimeConverter.humanReadableTimeString(time),
-        time
+      laps: this.stopwatch.laps.map(timeInMs => ({
+        humanReadableTime: TimeConverter.humanReadableTimeString(timeInMs),
+        timeInMs
       })),
       time: {
         humanReadableTime: TimeConverter.humanReadableTimeString(this.stopwatch.currentTime),
-        time: this.stopwatch.currentTime
+        timeInMs: this.stopwatch.currentTime
       }
     }
   }
@@ -118,20 +118,36 @@ class HtmlLapHandler {
     const timeElement = document.createElement('time')
     timeElement.innerText = TimeConverter.humanReadableTimeString(time)
 
+    // On click on the digits copy the displayed lap time to the clipboard
+    timeElement.addEventListener("click", () => {
+      navigator.clipboard.writeText(timeElement.innerText).then(
+        () => {
+          console.debug("data written to clipboard")
+        },
+        () => {
+          console.error("unable to write data to clipboard")
+        }
+      )
+    })
+
     const timeContainerElement = document.createElement('div')
     timeContainerElement.className = 'stopwatch_time_container'
-    timeContainerElement.innerHTML = removeElementOpposite.outerHTML + timeElement.outerHTML + removeElement.outerHTML
+    timeContainerElement.appendChild(removeElementOpposite)
+    timeContainerElement.appendChild(timeElement)
+    timeContainerElement.appendChild(removeElement)
 
-    element.innerHTML = '#' + lapElement.outerHTML + ' ' + timeContainerElement.outerHTML
+    element.innerText = '#'
+    element.appendChild(lapElement)
+    element.appendChild(timeContainerElement)
     element.addEventListener('mouseover', event => {
-      element.childNodes[3].childNodes[0].style.display = 'inline-block'
-      element.childNodes[3].childNodes[2].style.display = 'inline-block'
+      removeElementOpposite.style.display = 'inline-block'
+      removeElement.style.display = 'inline-block'
     })
     element.addEventListener('mouseout', event => {
-      element.childNodes[3].childNodes[0].style.display = 'none'
-      element.childNodes[3].childNodes[2].style.display = 'none'
+      removeElementOpposite.style.display = 'none'
+      removeElement.style.display = 'none'
     })
-    element.childNodes[3].childNodes[2].addEventListener('click', event => {
+    removeElement.addEventListener('click', event => {
       this.stopwatch.removeLap(Number(element.childNodes[1].innerText) - 1)
     })
     this.lapsDivElement.appendChild(element)
@@ -222,7 +238,8 @@ class HtmlControlsHandler {
     const keySymbol = document.createElement('kbd')
     keySymbol.className = 'light'
     keySymbol.innerText = keyboardShortcut
-    controlButton.innerHTML = title + '  ' + keySymbol.outerHTML
+    controlButton.innerText = title
+    controlButton.appendChild(keySymbol)
 
     controlButton.addEventListener('click', event => callbackFun())
     if (this.addKeyBoardListener) {
@@ -277,7 +294,7 @@ class Stopwatch {
   }
   /**
    * Get the current laps
-   * @returns {*[]}
+   * @returns {number[]}
    */
   get currentLaps () {
     return this.laps
@@ -532,6 +549,48 @@ class HtmlDigitHandler {
     for (let index = 0; index < 3; index++) {
       this.watchDivElement.appendChild(this.getDigit('millisecond' + index))
     }
+
+    // On click on the digits copy the current displayed time to the clipboard
+    this.watchDivElement.addEventListener("click", () => {
+      const text = Array.from(this.watchDivElement.children)
+        .map(a => Array.from(a.classList).filter(a => a !== "stopwatch_digits_element"))
+        .flat()
+        .map(a => {
+          switch (a) {
+            case "stopwatch_digits_divider":
+              return ":"
+            case "zero":
+              return "0"
+            case "one":
+              return "1"
+            case "two":
+              return "2"
+            case "three":
+              return "3"
+            case "four":
+              return "4"
+            case "five":
+              return "5"
+            case "six":
+              return "6"
+            case "seven":
+              return "7"
+            case "eight":
+              return "8"
+            case "nine":
+              return "9"
+          }
+        })
+        .join("")
+      navigator.clipboard.writeText(text).then(
+        () => {
+          console.debug("data written to clipboard")
+        },
+        () => {
+          console.error("unable to write data to clipboard")
+        }
+      )
+    })
   }
 }
 
@@ -570,11 +629,11 @@ class TimeConverter {
   }
   /**
    * Convert time to human readable time string array
-   * @param {Number} time in milliseconds
+   * @param {Number} timeInMs in milliseconds
    * @returns {Number[][]} time
    */
-  static humanReadableTimeDigits (time) {
-    const timeNumbers = this.humanReadableTime(time)
+  static humanReadableTimeDigits (timeInMs) {
+    const timeNumbers = this.humanReadableTime(timeInMs)
     const padTime = (timeNumber, digits = 2) => ('0'.repeat(digits) + timeNumber).slice(-digits)
     const convertStringToDigits = digitsString => digitsString.split('')
     return [convertStringToDigits(padTime(timeNumbers[0])),
@@ -585,11 +644,11 @@ class TimeConverter {
   }
   /**
    * Convert time to human readable time string array
-   * @param {Number} time in milliseconds
+   * @param {Number} timeInMs in milliseconds
    * @returns {String[][]} time
    */
-  static humanReadableTimeNumberString (time) {
-    return this.humanReadableTimeDigits(time).map(digits =>
+  static humanReadableTimeNumberString (timeInMs) {
+    return this.humanReadableTimeDigits(timeInMs).map(digits =>
       digits.map(digit => this.timeDigitStringMap[digit]))
   }
 }
