@@ -33,14 +33,22 @@
     }
 }
 
+/* Global variables */
 :root {
     --stopwatch-digit-divider-color: #000;
+}
+
+/* Dark Mode enabled */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --stopwatch-digit-divider-color: rgb(255, 255, 255);
+    }
 }
 
 div#stopwatch_digits_area {
     text-align: center;
     padding: var(--stopwatch-padding);
-    background: white;
+    background: var(--main-color);
     margin: auto;
     max-width: 800px;
 }
@@ -62,9 +70,9 @@ ul#stopwatch_controls_area {
  */
 ul#stopwatch_controls_area>button {
     box-shadow: 0 3px 1px -2px rgba(0, 0, 0, .2), 0 2px 2px 0 rgba(0, 0, 0, .14), 0 1px 5px 0 rgba(0, 0, 0, .12);
-    background-color: #fff;
+    background-color: var(--main-second-color);
     transition: background-color 0.2s, color 0.2s;
-    color: #000;
+    color: var(--text-color);
     margin: 0;
     font-size: 1rem;
     font-weight: 500;
@@ -82,7 +90,7 @@ ul#stopwatch_controls_area>button {
 ul#stopwatch_controls_area>button:hover,
 ul#stopwatch_controls_area>button:focus {
     transition: background-color 0.2s, color 0.2s;
-    color: #fff;
+    color: var(--text-color);
     outline: 0;
 }
 
@@ -127,7 +135,7 @@ ul#stopwatch_laps_area>li {
     margin: 0.5rem auto;
     width: 100%;
     text-align: center;
-    color: #030303;
+    color: var(--text-color);
     font-family: Roboto, "Helvetica Neue", sans-serif;
     font-size: 1.5rem;
     font-weight: 500;
@@ -141,6 +149,7 @@ ul#stopwatch_laps_area>li>div.stopwatch_time_container>time {
     display: inline-block;
     font-size: 2rem;
     font-weight: 900;
+    color: var(--text-color);
 }
 
 ul#stopwatch_laps_area>li>div.stopwatch_time_container>div.stopwatch-remove-lap-cross,
@@ -176,7 +185,7 @@ ul#stopwatch_laps_area>li>div.stopwatch_time_container>div.stopwatch-remove-lap-
 
 ul#stopwatch_laps_area>li>div.stopwatch_time_container>div.stopwatch-remove-lap-cross:before,
 ul#stopwatch_laps_area>li>div.stopwatch_time_container>div.stopwatch-remove-lap-cross:after {
-    background-color: #333;
+    background-color: var(--text-color);
 
 }
 
