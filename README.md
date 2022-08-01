@@ -1,29 +1,24 @@
 # StopwatchWebApp
 
-A Javascript web app for a stopwatch
+A simple Javascript web app for a stopwatch.
 
 ## Features
 
-- Build from scratch (no dependencies whatsoever)
+- Built from scratch (no external dependencies or web requests whatsoever)
 - Javascript classes are disconnected from each other and communication is resolved through callback events for better maintainability
 - Responsive layout (mobile, tablet, desktop)
 - CSS time display instead of a custom font
 - Download a `.json` file with the stopped time and laps that contains human readable time strings and the millisecond count to reuse the information
+- Click on the stopwatch time or the lap time to copy the displayed time to the clipboard
 
 ## Display
 
 Open [`index.html`](index.html) with a browser.
 
-## Build favicons (`.png`)
+## Build favicons
 
-Install [`inkscape`](https://inkscape.org/) and run the script [`favicons/createPngFavicons.sh`](favicons/createPngFavicons.sh)
-
-## Build favicons (`.ico`)
-
-**Before doing the following you need to the previous step!**
-
-Install [`magick`](https://www.imagemagick.org/script/download.php#windows) and run the script [`favicons/createIcoFavicons.sh`](favicons/createIcoFavicons.sh)
-
+1. Install [`inkscape`](https://inkscape.org/) and run the script [`favicons/createPngFavicons.sh`](favicons/createPngFavicons.sh)
+2. Install [`magick`](https://www.imagemagick.org/script/download.php#windows) and run the script [`favicons/createIcoFavicons.sh`](favicons/createIcoFavicons.sh)
 
 ## Used resources
 
