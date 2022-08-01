@@ -80,6 +80,7 @@ class HtmlLapHandler {
     this.stopwatch.registerEventListener('add_lap', this.addLap.bind(this))
     this.stopwatch.registerEventListener('remove_lap', this.removeLap.bind(this))
     this.stopwatch.registerEventListener('clear_laps', this.clearLaps.bind(this))
+    this.stopwatch.registerEventListener('restart', this.clearLaps.bind(this))
   }
   /**
    * Create laps in HTML document in specified HTMLUListElement
