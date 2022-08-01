@@ -5,22 +5,20 @@ document.addEventListener('DOMContentLoaded', event => {
   const controlsUl = document.querySelector('ul#stopwatchControlsUl')
   // @ts-ignore
   const stopwatch = new StopwatchApi(watchDiv, { controlsUl, lapsUl, keyboardControls: true })
-  stopwatch.event('start', (startedTime, startedUTCDate) => {
-    console.log('start', `startedTime=${startedTime}<=>${TimeConverter.humanReadableTimeString(startedTime)}`,
-      `startedUTCDate=${startedUTCDate}`)
+  stopwatch.removeEventListener('start', (startedTime, startedDate) => {
+    console.debug('start', `startedTime=${startedTime}<=>${TimeConverter.humanReadableTimeString(startedTime)}`, `startedDate=${startedDate}`)
   })
-  stopwatch.event('stop', (stoppedTime, stoppedUTCDate) => {
-    console.log('stop', `stoppedTime=${stoppedTime}<=>${TimeConverter.humanReadableTimeString(stoppedTime)}`,
-      `stoppedUTCDate=${stoppedUTCDate}`)
+  stopwatch.removeEventListener('stop', (stoppedTime, stoppedDate) => {
+    console.debug('stop', `stoppedTime=${stoppedTime}<=>${TimeConverter.humanReadableTimeString(stoppedTime)}`, `stoppedDate=${stoppedDate}`)
   })
-  stopwatch.event('restart', () => { console.log('restart') })
-  stopwatch.event('add_lap', (index, lapTime) => {
-    console.log('add_lap', `index=${index}`, `lapTime=${lapTime}<=>${TimeConverter.humanReadableTimeString(lapTime)}`)
+  stopwatch.removeEventListener('restart', () => { console.log('restart') })
+  stopwatch.removeEventListener('add_lap', (index, lapTimeInMs) => {
+    console.debug('add_lap', `index=${index}`, `lapTime=${lapTimeInMs}<=>${TimeConverter.humanReadableTimeString(lapTimeInMs)}`)
   })
-  stopwatch.event('remove_lap', (index, lapTime) => {
-    console.log('remove_lap', `index=${index}`, `lapTime=${lapTime}<=>${TimeConverter.humanReadableTimeString(lapTime)}`)
+  stopwatch.removeEventListener('remove_lap', (index, lapTimeInMs) => {
+    console.debug('remove_lap', `index=${index}`, `lapTime=${lapTimeInMs}<=>${TimeConverter.humanReadableTimeString(lapTimeInMs)}`)
   })
-  stopwatch.event('clear_laps', () => { console.log('clear_laps') })
+  stopwatch.removeEventListener('clear_laps', () => { console.debug('clear_laps') })
 
   /**
    * Stack Overflow solution to download a file with JS:

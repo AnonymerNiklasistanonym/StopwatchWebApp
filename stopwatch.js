@@ -26,14 +26,14 @@ class StopwatchApi {
     }
 
     this.paintNow = false
-    this.stopwatch.event('restart', () => {
+    this.stopwatch.registerEventListener('restart', () => {
       this.htmlDigitHandler.setTime()
     })
-    this.stopwatch.event('start', () => {
+    this.stopwatch.registerEventListener('start', () => {
       this.paintNow = true
       this.paint()
     })
-    this.stopwatch.event('stop', () => {
+    this.stopwatch.registerEventListener('stop', () => {
       this.paintNow = false
       this.htmlDigitHandler.setTime()
     })
@@ -45,8 +45,12 @@ class StopwatchApi {
         timeInMs
       })),
       time: {
-        humanReadableTime: TimeConverter.humanReadableTimeString(this.stopwatch.currentTime),
-        timeInMs: this.stopwatch.currentTime
+        humanReadableTime: TimeConverter.humanReadableTimeString(this.stopwatch.currentTimeInMs),
+        timeInMs: this.stopwatch.currentTimeInMs
+      },
+      date: {
+        start: this.stopwatch.startedDate?.toISOString(),
+        stop: this.stopwatch.running ? new Date() : this.stopwatch.stoppedDate?.toISOString()
       }
     }
   }
@@ -57,12 +61,20 @@ class StopwatchApi {
     }
   }
   /**
-   * Event listener
+   * Register event listener
    * @param {String} eventName
-   * @param {function(...*): *} callback
+   * @param {Function} callback
    */
-  event (eventName, callback) {
-    this.stopwatch.eventPublic(eventName, callback)
+  removeEventListener (eventName, callback) {
+    this.stopwatch.registerEventListener(eventName, callback)
+  }
+  /**
+   * Remove event listener
+   * @param {String} eventName
+   * @param {Function} callback
+   */
+  removeEventListener (eventName, callback) {
+    this.stopwatch.removeEventListener(eventName, callback)
   }
 }
 
@@ -74,15 +86,13 @@ class HtmlLapHandler {
    */
   constructor (lapsDivElement, stopwatch) {
     this.lapsDivElement = lapsDivElement
-    this.lapCounter = 0
-    this.lastLapTime = 0
     this.stopwatch = stopwatch
     // Setup HTML document
     this.createLaps()
     // Setup stopwatch connection
-    this.stopwatch.event('add_lap', this.addLap.bind(this))
-    this.stopwatch.event('remove_lap', this.removeLap.bind(this))
-    this.stopwatch.event('clear_laps', this.clearLaps.bind(this))
+    this.stopwatch.registerEventListener('add_lap', this.addLap.bind(this))
+    this.stopwatch.registerEventListener('remove_lap', this.removeLap.bind(this))
+    this.stopwatch.registerEventListener('clear_laps', this.clearLaps.bind(this))
   }
   /**
    * Create laps in HTML document in specified HTMLUListElement
@@ -97,11 +107,6 @@ class HtmlLapHandler {
    * @param {Number} time
    */
   addLap (index, time) {
-    if (this.lastLapTime === time) {
-      return
-    }
-    this.lastLapTime = time
-    this.lapCounter += 1
     const element = document.createElement('li')
 
     const removeElementOpposite = document.createElement('div')
@@ -110,7 +115,7 @@ class HtmlLapHandler {
 
     const lapElement = document.createElement('div')
     lapElement.style.display = 'inline-block'
-    lapElement.innerText = '' + this.lapCounter
+    lapElement.innerText = index + 1
     const removeElement = document.createElement('div')
     removeElement.className = 'stopwatch-remove-lap-cross'
     removeElement.style.display = 'none'
@@ -139,36 +144,44 @@ class HtmlLapHandler {
     element.innerText = '#'
     element.appendChild(lapElement)
     element.appendChild(timeContainerElement)
-    element.addEventListener('mouseover', event => {
+    element.addEventListener('mouseover', () => {
       removeElementOpposite.style.display = 'inline-block'
       removeElement.style.display = 'inline-block'
     })
-    element.addEventListener('mouseout', event => {
+    element.addEventListener('mouseout', () => {
       removeElementOpposite.style.display = 'none'
       removeElement.style.display = 'none'
     })
-    removeElement.addEventListener('click', event => {
-      this.stopwatch.removeLap(Number(element.childNodes[1].innerText) - 1)
+    removeElement.addEventListener('click', () => {
+      this.stopwatch.removeLap(index)
     })
-    this.lapsDivElement.appendChild(element)
+    this.lapsDivElement.insertBefore(element, this.lapsDivElement.firstChild);
   }
   /**
    * Remove lap
    * @param {Number} index
    */
   removeLap (index) {
-    this.lapsDivElement.removeChild(this.lapsDivElement.childNodes[index])
-    this.lapCounter = this.lapsDivElement.childElementCount
-    for (let index = 0; index < this.lapCounter; index++) {
-      const element = this.lapsDivElement.childNodes[index]
-      element.childNodes[1].innerText = index + 1
+    const actualIndex = index + 1
+    console.debug(`Remove lap #${actualIndex} (index=${index})`)
+    for (const element of this.lapsDivElement.childNodes) {
+      if (element.childNodes[1].innerText === `${actualIndex}`) {
+        this.lapsDivElement.removeChild(element)
+        break
+      }
+    }
+    // Now update the index of all the other children
+    let newIndex = this.stopwatch.laps.length
+    for (const element of this.lapsDivElement.childNodes) {
+      console.debug(`Rename lap #${element.childNodes[1].innerText} to #${newIndex}`)
+      element.childNodes[1].innerText = `${newIndex}`
+      newIndex--
     }
   }
   /**
    * Remove all laps
    */
   clearLaps () {
-    this.lapCounter = 0
     while (this.lapsDivElement.firstChild) {
       this.lapsDivElement.removeChild(this.lapsDivElement.firstChild)
     }
@@ -264,44 +277,92 @@ class Stopwatch {
    * Creates an instance of Stopwatch.
    */
   constructor () {
+    // Declare class variables
+    /**
+     * The start date
+     * @type {Date}
+     */
+    this.startedDate = undefined
+    /**
+     * The stop date
+     * @type {Date}
+     */
+    this.stoppedDate = undefined
+    /**
+     * The start time (high resolution time stamp in ms)
+     * @type {DOMHighResTimeStamp}
+     */
+    this.startedTimeTimeStamp = 0
+    /**
+     * The stopped time (high resolution time stamp in ms)
+     * @type {DOMHighResTimeStamp}
+     */
+    this.stoppedTimeTimeStamp = 0
+    /**
+     * The lap times (in ms)
+     * @type {number[]}
+     */
+    this.laps = []
+    /**
+     * Is the timer currently running
+     */
+    this.running = false
     // Reset/Initialize watch
     this.reset()
     // Reset event callbacks
-    this.callbackAddLap = (index, lapTime) => {}
-    this.callbackRemoveLap = (index, lapTime) => {}
-    this.callbackClearLaps = () => {}
-    this.callbackStart = (startedTime, startedUTCDate) => {}
-    this.callbackStop = (stoppedTime, stoppedUTCDate) => {}
-    this.callbackRestart = () => {}
-    // Reset public event callbacks
-    this.callbackPublicAddLap = this.callbackAddLap
-    this.callbackPublicRemoveLap = this.callbackRemoveLap
-    this.callbackPublicClearLaps = this.callbackClearLaps
-    this.callbackPublicStart = this.callbackStart
-    this.callbackPublicStop = this.callbackStop
-    this.callbackPublicRestart = this.callbackRestart
+    /**
+     * Callback that is triggered when a lap was added
+     * @param {number} index The index of the added lap
+     * @param {number} lapTimeInMs The time of the added lap
+     * @type {[(index: number, lapTimeInMs: number) => void]}
+     */
+    this.callbacksAddLap = []
+    /**
+     * Callback that is triggered when a lap was removed
+     * @param {number} index The index of the removed lap
+     * @param {number} lapTimeInMs The time of the removed lap
+     * @type {[(index: number, lapTimeInMs: number) => void]}
+     */
+    this.callbacksRemoveLap = []
+    /**
+     * Callback that is triggered when laps were cleared
+     * @type {[() => void]}
+     */
+    this.callbacksClearLaps = []
+    /**
+     * Callback that is triggered when the stopwatch is started
+     * @param {DOMHighResTimeStamp} startedTime TODO
+     * @param {Date} startedUTCDate TODO
+     * @type {[(startedTimeTimeStamp: DOMHighResTimeStamp, startedDate: Date) => void]}
+     */
+    this.callbacksStart = []
+    /**
+     * Callback that is triggered when the stopwatch is stopped
+     * @param {DOMHighResTimeStamp} stoppedTime TODO
+     * @param {Date} stoppedDate TODO
+     * @type {[(stoppedTimeTimeStamp: DOMHighResTimeStamp, stoppedDate: Date) => void]}
+     */
+    this.callbacksStop = []
+    /**
+     * Callback that is triggered when the stopwatch is restarted
+     * @type {[() => void]}
+     */
+    this.callbacksRestart = []
   }
   /**
-   * Get the current time
-   * @returns {number}
+   * Get the current time (in ms)
    */
-  get currentTime () {
-    if (this.running) {
-      return window.performance.now() - this.startedTime
-    } else {
-      return this.stoppedTime - this.startedTime
-    }
+  get currentTimeInMs () {
+    return (this.running ? window.performance.now() : this.stoppedTimeTimeStamp) - this.startedTimeTimeStamp
   }
   /**
    * Get the current laps
-   * @returns {number[]}
    */
   get currentLaps () {
     return this.laps
   }
   /**
    * Get if the watch is currently running
-   * @returns {boolean}
    */
   get isRunning () {
     return this.running
@@ -310,9 +371,12 @@ class Stopwatch {
    * Reset and initialize all class variables
    */
   reset () {
+    // Rest date
+    this.startedDate = undefined
+    this.stoppedDate = undefined
     // Reset time
-    this.startedTime = 0
-    this.stoppedTime = 0
+    this.startedTimeTimeStamp = 0
+    this.stoppedTimeTimeStamp = 0
     // Reset laps
     this.laps = []
     // Not running
@@ -328,14 +392,11 @@ class Stopwatch {
       // Get the current time as a DOMHighResTimeStamp, measured in milliseconds,
       // accurate to five thousandths of a millisecond (5 microseconds)
       // https://developer.mozilla.org/en-US/docs/Web/API/Performance/now
-      const STARTED_TIME = window.performance.now()
-      const DATE_TEMP = new Date()
-      const STARTED_DATE = [DATE_TEMP.getUTCHours(), DATE_TEMP.getUTCMinutes(),
-        DATE_TEMP.getUTCSeconds(), DATE_TEMP.getUTCMilliseconds() ].join(':')
-      this.startedTime = STARTED_TIME - (this.stoppedTime - this.startedTime)
+      const startedTimeTimeStamp = window.performance.now()
+      this.startedDate = new Date()
+      this.startedTimeTimeStamp = startedTimeTimeStamp - (this.stoppedTimeTimeStamp - this.startedTimeTimeStamp)
       // Event listeners
-      this.callbackStart(STARTED_TIME, STARTED_DATE)
-      this.callbackPublicStart(STARTED_TIME, STARTED_DATE)
+      this.callbacksStart.forEach((callback) => callback(startedTimeTimeStamp, this.startedDate))
     }
   }
   /**
@@ -344,53 +405,50 @@ class Stopwatch {
   stop () {
     if (this.running) {
       this.running = false
-      const STOPPED_TIME = window.performance.now()
-      const DATE_TEMP = new Date()
-      const STOPPED_DATE = [DATE_TEMP.getUTCHours(), DATE_TEMP.getUTCMinutes(),
-        DATE_TEMP.getUTCSeconds(), DATE_TEMP.getUTCMilliseconds() ].join(':')
-      this.stoppedTime = STOPPED_TIME
+      this.stoppedTimeTimeStamp = window.performance.now()
+      this.stoppedDate = new Date()
       // Event listeners
-      this.callbackStop(STOPPED_TIME, STOPPED_DATE)
-      this.callbackPublicStop(STOPPED_TIME, STOPPED_DATE)
+      this.callbacksStop.forEach((callback) => callback(this.stoppedTimeTimeStamp, this.stoppedDate))
     }
   }
   /**
    * Restart stopwatch
    */
   restart () {
+    // Reset all variables
     this.reset()
-    this.clearLaps()
     // Event listeners
-    this.callbackRestart()
-    this.callbackPublicRestart()
-    // ----------------
+    this.callbacksRestart.forEach((callback) => callback())
+    // Start stopwatch
     this.start()
   }
   /**
    * Add a lap
    */
   addLap () {
-    const temp = this.currentTime
-    if (this.currentTime === 0) {
+    const currentTime = this.currentTimeInMs
+    // Don't add laps if the current time is 0
+    if (currentTime === 0) {
+      console.debug("Don't add lap because the current time is 0")
       return
     }
-    let count = this.laps.push(temp)
+    // Don't add laps if the time is the same as last lap time
+    if (this.laps.length > 0 && currentTime === this.laps[this.laps.length - 1]) {
+      console.debug("Don't add lap because the current time is the same as the last lap time")
+      return
+    }
+    const indexOfNewLap = this.laps.push(currentTime)
     // Event listeners
-    this.callbackAddLap(count - 1, temp)
-    this.callbackPublicAddLap(count - 1, temp)
+    this.callbacksAddLap.forEach((callback) => callback(indexOfNewLap - 1, currentTime))
   }
   /**
    * Remove a lap
    * @param {number} index of lap that should be removed
    */
   removeLap (index) {
-    let deletedElement = this.laps[index]
-    if (index >= 0 && index < this.laps.length) {
-      deletedElement = this.laps.splice(index, 1)
-    }
+    const deletedLapTimeInMs = this.laps.splice(index, 1)
     // Event listeners
-    this.callbackRemoveLap(index, deletedElement)
-    this.callbackPublicRemoveLap(index, deletedElement)
+    this.callbacksRemoveLap.forEach((callback) => callback(index, deletedLapTimeInMs))
   }
   /**
    * Clear all laps
@@ -398,66 +456,77 @@ class Stopwatch {
   clearLaps () {
     this.laps = []
     // Event listeners
-    this.callbackClearLaps()
-    this.callbackPublicClearLaps()
+    this.callbacksClearLaps.forEach((callback) => callback())
   }
   /**
-   * Event listener
-   * @param {String} eventName
-   * @param {*} callback
+   * Register an event listener
+   * @param {String} eventName The name of the event
+   * @param {Function} callback The callback method that should be registered
    */
-  event (eventName, callback) {
+  registerEventListener (eventName, callback) {
     switch (eventName) {
       case 'start':
-        this.callbackStart = callback
+        this.callbacksStart.push(callback)
         break
       case 'stop':
-        this.callbackStop = callback
+        this.callbacksStop.push(callback)
         break
       case 'restart':
-        this.callbackRestart = callback
+        this.callbacksRestart.push(callback)
         break
       case 'add_lap':
-        this.callbackAddLap = callback
+        this.callbacksAddLap.push(callback)
         break
       case 'remove_lap':
-        this.callbackRemoveLap = callback
+        this.callbacksRemoveLap.push(callback)
         break
       case 'clear_laps':
-        this.callbackClearLaps = callback
+        this.callbacksClearLaps.push(callback)
         break
       default:
-        console.error('The event "' + eventName + '" does not exist!')
+        console.error(`The event '${eventName}' does not exist!`)
         break
     }
   }
   /**
-   * Public event listener
-   * @param {String} eventName
-   * @param {*} callback
+   * Remove an event listener
+   * @param {String} eventName The name of the event
+   * @param {Function} callback The callback method that should be removed
    */
-  eventPublic (eventName, callback) {
+  removeEventListener (eventName, callback) {
     switch (eventName) {
       case 'start':
-        this.callbackPublicStart = callback
+        if (this.callbacksStart.indexOf(callback) > -1) {
+          this.callbacksStart.splice(this.callbacksStart.indexOf(callback), 1)
+        }
         break
       case 'stop':
-        this.callbackPublicStop = callback
+        if (this.callbacksStop.indexOf(callback) > -1) {
+          this.callbacksStop.splice(this.callbacksStop.indexOf(callback), 1)
+        }
         break
       case 'restart':
-        this.callbackPublicRestart = callback
+        if (this.callbacksRestart.indexOf(callback) > -1) {
+          this.callbacksRestart.splice(this.callbacksRestart.indexOf(callback), 1)
+        }
         break
       case 'add_lap':
-        this.callbackPublicAddLap = callback
+        if (this.callbacksAddLap.indexOf(callback) > -1) {
+          this.callbacksAddLap.splice(this.callbacksAddLap.indexOf(callback), 1)
+        }
         break
       case 'remove_lap':
-        this.callbackPublicRemoveLap = callback
+        if (this.callbacksRemoveLap.indexOf(callback) > -1) {
+          this.callbacksRemoveLap.splice(this.callbacksRemoveLap.indexOf(callback), 1)
+        }
         break
       case 'clear_laps':
-        this.callbackPublicClearLaps = callback
+        if (this.callbacksClearLaps.indexOf(callback) > -1) {
+          this.callbacksClearLaps.splice(this.callbacksClearLaps.indexOf(callback), 1)
+        }
         break
       default:
-        console.error('The public event "' + eventName + '" does not exist!')
+        console.error(`The event '${eventName}' does not exist!`)
         break
     }
   }
@@ -475,7 +544,7 @@ class HtmlDigitHandler {
     this.setTime()
   }
   setTime () {
-    const timeNumberStrings = TimeConverter.humanReadableTimeNumberString(this.stopwatch.currentTime)
+    const timeNumberStrings = TimeConverter.humanReadableTimeNumberString(this.stopwatch.currentTimeInMs)
     for (let index = 0; index < 2; index++) {
       const tempElement = document.getElementById('hour' + index)
       tempElement.classList.remove(...TimeConverter.timeDigitStringMap)
