@@ -430,7 +430,10 @@ class Stopwatch {
       // accurate to five thousandths of a millisecond (5 microseconds)
       // https://developer.mozilla.org/en-US/docs/Web/API/Performance/now
       const startedTimeTimeStamp = window.performance.now()
-      this.startedDate = new Date()
+      // Don't overwrite the start date when timer was only paused
+      if (this.startedDate === undefined) {
+        this.startedDate = new Date()
+      }
       this.startedTimeTimeStamp = startedTimeTimeStamp - (this.stoppedTimeTimeStamp - this.startedTimeTimeStamp)
       // Event listeners
       this.callbacksStart.forEach((callback) => callback(startedTimeTimeStamp, this.startedDate))
