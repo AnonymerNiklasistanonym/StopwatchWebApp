@@ -5,7 +5,7 @@ class StopwatchApi {
   /**
    * Creates an instance of StopwatchHandler.
    * @param {HTMLDivElement} watchDiv 'div' HTML element that should contain the watch
-   * @param {{controlsUl: HTMLUListElement, lapsUl: HTMLUListElement, keyboardControls: boolean}} [options]
+   * @param {{controlsUl: HTMLUListElement, dataControlsUl: HTMLUListElement, lapsUl: HTMLUListElement, keyboardControls: boolean}} [options]
    */
   constructor (watchDiv, options) {
     // Initialize stopwatch
@@ -14,9 +14,9 @@ class StopwatchApi {
     this.htmlDigitHandler = new HtmlDigitHandler(watchDiv, this.stopwatch)
     // Options
     if (options !== undefined) {
-      if (options.controlsUl !== undefined) {
+      if (options.controlsUl !== undefined && options.dataControlsUl !== undefined) {
         // Create html structure for watch control / buttons
-        this.htmlControlsHandler = new HtmlControlsHandler(options.controlsUl, this.stopwatch, {
+        this.htmlControlsHandler = new HtmlControlsHandler(options.controlsUl, options.dataControlsUl, this.stopwatch, {
           keyBoardListener: options.keyboardControls !== undefined && options.keyboardControls })
       }
       if (options.lapsUl !== undefined) {
@@ -39,20 +39,7 @@ class StopwatchApi {
     })
   }
   get state () {
-    return {
-      laps: this.stopwatch.laps.map(timeInMs => ({
-        humanReadableTime: TimeConverter.humanReadableTimeString(timeInMs),
-        timeInMs
-      })),
-      time: {
-        humanReadableTime: TimeConverter.humanReadableTimeString(this.stopwatch.currentTimeInMs),
-        timeInMs: this.stopwatch.currentTimeInMs
-      },
-      date: {
-        start: this.stopwatch.startedDate?.toISOString(),
-        stop: this.stopwatch.running ? new Date() : this.stopwatch.stoppedDate?.toISOString()
-      }
-    }
+    return this.stopwatch.state
   }
   paint () {
     if (this.paintNow) {
@@ -188,16 +175,36 @@ class HtmlLapHandler {
   }
 }
 
+/**
+ * Stack Overflow solution to download a file with JS:
+ * https://stackoverflow.com/a/30800715
+ * @author {volzotan} https://stackoverflow.com/users/1472381/volzotan
+ * @author {bformet} https://stackoverflow.com/users/1189651/bformet
+ * @param {*} exportObj
+ * @param {String} exportName
+ */
+const downloadObjectAsJson = (exportObj, exportName) => {
+  const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(exportObj, null, 4))
+  const downloadAnchorNode = document.createElement('a')
+  downloadAnchorNode.setAttribute('href', dataStr)
+  downloadAnchorNode.setAttribute('download', exportName + '.json')
+  document.body.appendChild(downloadAnchorNode) // required for firefox
+  downloadAnchorNode.click()
+  downloadAnchorNode.remove()
+}
+
 class HtmlControlsHandler {
   /**
    * Creates an instance of HtmlControlsHandler.
-   * @param {HTMLUListElement} controlsDivElement
+   * @param {HTMLUListElement} controlsUlElement
+   * @param {HTMLUListElement} dataControlsUlElement
    * @param {Stopwatch} stopwatch
    * @param {{keyBoardListener: boolean}} options
    */
-  constructor (controlsDivElement, stopwatch, options) {
+  constructor (controlsUlElement, dataControlsUlElement, stopwatch, options) {
     this.stopwatch = stopwatch
-    this.controlsDivElement = controlsDivElement
+    this.controlsUlElement = controlsUlElement
+    this.dataControlsUlElement = dataControlsUlElement
 
     if (options !== undefined) {
       this.addKeyBoardListener = options.keyBoardListener !== undefined && options.keyBoardListener
@@ -212,29 +219,40 @@ class HtmlControlsHandler {
    * Create controls in HTML document in specified HTMLUListElement
    */
   createControls () {
-    while (this.controlsDivElement.firstChild) {
-      this.controlsDivElement.removeChild(this.controlsDivElement.firstChild)
+    // Stopwatch controls
+    while (this.controlsUlElement.firstChild) {
+      this.controlsUlElement.removeChild(this.controlsUlElement.firstChild)
     }
-    this.controlsDivElement.id = 'stopwatch_controls_area'
-    this.controlsDivElement.appendChild(this.getControl('start_stop', 'Start/Stop', 'S',
+    this.controlsUlElement.id = 'stopwatch_controls_area'
+    this.controlsUlElement.appendChild(this.getControl('start_stop', 'Start/Stop', 'S',
       () => {
         document.getElementById('start_stop').focus()
         this.stopwatch.isRunning ? this.stopwatch.stop() : this.stopwatch.start()
       }))
-    this.controlsDivElement.appendChild(this.getControl('restart', 'Restart', 'R',
+    this.controlsUlElement.appendChild(this.getControl('restart', 'Restart', 'R',
       () => {
         document.getElementById('restart').focus()
         this.stopwatch.restart()
       }))
-    this.controlsDivElement.appendChild(this.getControl('add_lap', 'Lap', 'L',
+    this.controlsUlElement.appendChild(this.getControl('add_lap', 'Lap', 'L',
       () => {
         document.getElementById('add_lap').focus()
         this.stopwatch.addLap()
       }))
-    this.controlsDivElement.appendChild(this.getControl('clear_laps', 'Clear laps', 'C',
+    this.controlsUlElement.appendChild(this.getControl('clear_laps', 'Clear laps', 'C',
       () => {
         document.getElementById('clear_laps').focus()
         this.stopwatch.clearLaps()
+      }))
+    // Stopwatch data controls
+    while (this.dataControlsUlElement.firstChild) {
+      this.dataControlsUlElement.removeChild(this.dataControlsUlElement.firstChild)
+    }
+    this.dataControlsUlElement.id = 'stopwatch_data_controls_area'
+    this.dataControlsUlElement.appendChild(this.getControl('download_data', 'Download JSON', 'A',
+      () => {
+        const filename = `stopwatch_state_${(new Date().toJSON().slice(0,10))}`
+        downloadObjectAsJson(this.stopwatch.state, filename)
       }))
   }
   /**
@@ -366,6 +384,25 @@ class Stopwatch {
    */
   get isRunning () {
     return this.running
+  }
+  /**
+   * Get the current state of the stopwatch
+   */
+  get state () {
+    return {
+      laps: this.laps.map(timeInMs => ({
+        humanReadableTime: TimeConverter.humanReadableTimeString(timeInMs),
+        timeInMs
+      })),
+      time: {
+        humanReadableTime: TimeConverter.humanReadableTimeString(this.currentTimeInMs),
+        timeInMs: this.currentTimeInMs
+      },
+      date: {
+        start: this.startedDate?.toISOString(),
+        stop: this.running ? new Date().toISOString() : this.stoppedDate?.toISOString()
+      }
+    }
   }
   /**
    * Reset and initialize all class variables

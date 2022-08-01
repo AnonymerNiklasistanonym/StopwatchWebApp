@@ -53,7 +53,7 @@ div#stopwatch_digits_area {
     max-width: 800px;
 }
 
-ul#stopwatch_controls_area {
+ul#stopwatch_controls_area, ul#stopwatch_data_controls_area {
     margin: auto;
     padding: 0;
     max-width: 800px;
@@ -65,10 +65,14 @@ ul#stopwatch_controls_area {
     align-items: center;
 }
 
+ul#stopwatch_data_controls_area {
+    grid-template-columns: repeat(calc(var(--stopwatch-controls-grid-template-columns) / 2), 1fr);
+}
+
 /**
  * Buttons
  */
-ul#stopwatch_controls_area>button {
+ul#stopwatch_controls_area>button, ul#stopwatch_data_controls_area>button {
     box-shadow: 0 3px 1px -2px rgba(0, 0, 0, .2), 0 2px 2px 0 rgba(0, 0, 0, .14), 0 1px 5px 0 rgba(0, 0, 0, .12);
     background-color: var(--main-second-color);
     transition: background-color 0.2s, color 0.2s;
@@ -88,7 +92,9 @@ ul#stopwatch_controls_area>button {
 }
 
 ul#stopwatch_controls_area>button:hover,
-ul#stopwatch_controls_area>button:focus {
+ul#stopwatch_controls_area>button:focus,
+ul#stopwatch_data_controls_area>button:hover,
+ul#stopwatch_data_controls_area>button:focus {
     transition: background-color 0.2s, color 0.2s;
     color: var(--text-color);
     outline: 0;
@@ -114,7 +120,13 @@ ul#stopwatch_controls_area>button#clear_laps:focus {
     background-color: rgb(137, 0, 172);
 }
 
-ul#stopwatch_controls_area>button>kbd {
+ul#stopwatch_data_controls_area>button#download_data:hover,
+ul#stopwatch_data_controls_area>button#download_data:focus {
+    background-color: rgb(172, 77, 0);
+}
+
+ul#stopwatch_controls_area>button>kbd,
+ul#stopwatch_data_controls_area>button>kbd {
     display: var(--display-keyboard-shortcut);
     cursor: pointer;
     margin-left: 1rem;
