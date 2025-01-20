@@ -141,7 +141,8 @@ class HtmlLapHandler {
       removeElement.style.display = 'none'
     })
     removeElement.addEventListener('click', () => {
-      this.stopwatch.removeLap(index)
+      const currentIndex = Number(lapElement.innerText) - 1
+      this.stopwatch.removeLap(currentIndex)
     })
     this.lapsDivElement.insertBefore(element, this.lapsDivElement.firstChild);
   }
@@ -176,6 +177,40 @@ class HtmlLapHandler {
   }
 }
 
+const shareOrDownloadFile = async (
+  file,
+  fileObjectUrl,
+  fileName,
+  title,
+  text,
+) => {
+  if (navigator.share && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({
+        files: [file],
+        title,
+        text,
+      });
+      return;
+    } catch (error) {
+      console.error("Error sharing file", error);
+    }
+  } else {
+    console.warn(
+      "Sharing file (navigator.share) is not supported, fallback to file download",
+    );
+  }
+  return downloadFile(fileObjectUrl, fileName);
+};
+
+const downloadFile = (fileObjectUrl, fileName) => {
+  const link = document.createElement("a");
+  link.href = fileObjectUrl;
+  link.download = fileName;
+  link.click();
+};
+
+
 /**
  * Stack Overflow solution to download a file with JS:
  * https://stackoverflow.com/a/30800715
@@ -184,14 +219,16 @@ class HtmlLapHandler {
  * @param {*} exportObj
  * @param {String} exportName
  */
-const downloadObjectAsJson = (exportObj, exportName) => {
-  const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(exportObj, null, 4))
-  const downloadAnchorNode = document.createElement('a')
-  downloadAnchorNode.setAttribute('href', dataStr)
-  downloadAnchorNode.setAttribute('download', exportName + '.json')
-  document.body.appendChild(downloadAnchorNode) // required for firefox
-  downloadAnchorNode.click()
-  downloadAnchorNode.remove()
+const shareJson = async (exportObj, exportName) => {
+  const jsonString = JSON.stringify(exportObj);
+  const jsonBlob = new Blob([jsonString], { type: "application/json" });
+  const jsonFile = new File([jsonBlob], "data.json", { type: "application/json" });
+  await shareOrDownloadFile(
+    jsonFile,
+    URL.createObjectURL(jsonBlob),
+    exportName + '.json',
+    "Stopwatch Laps"
+  )
 }
 
 class HtmlControlsHandler {
@@ -253,7 +290,7 @@ class HtmlControlsHandler {
     this.dataControlsUlElement.appendChild(this.getControl('download_data', 'Download JSON', 'A',
       () => {
         const filename = `stopwatch_state_${(new Date().toJSON().slice(0,10))}`
-        downloadObjectAsJson(this.stopwatch.state, filename)
+        shareJson(this.stopwatch.state, filename).catch(console.error)
       }))
   }
   /**

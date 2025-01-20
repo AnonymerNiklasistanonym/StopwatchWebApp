@@ -21,3 +21,30 @@ document.addEventListener('DOMContentLoaded', event => {
   })
   stopwatch.removeEventListener('clear_laps', () => { console.debug('clear_laps') })
 })
+
+// PWA Support if possible (register service worker)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+          .then((registration) => {
+              console.log('Service Worker registered successfully with scope:', registration.scope)
+
+              // Listen for updates to the service worker
+              registration.onupdatefound = () => {
+                  const installingWorker = registration.installing;
+                  if (installingWorker) {
+                      installingWorker.onstatechange = () => {
+                          if (installingWorker.state === 'installed') {
+                              if (navigator.serviceWorker.controller) {
+                                  console.log('Service Worker detected new content, refresh')
+                              }
+                          }
+                      }
+                  }
+              }
+          })
+          .catch((error) => {
+              console.error('Service Worker registration failed:', error)
+          })
+  })
+}

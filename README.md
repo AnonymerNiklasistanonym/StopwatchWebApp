@@ -11,6 +11,10 @@ A simple Javascript web app for a stopwatch.
 - Download a `.json` file with the stopped time and laps that contains human readable time strings and the millisecond count to reuse the information
 - Click on the stopwatch time or the lap time to copy the displayed time to the clipboard
 
+**Update 2025:**
+
+- Add PWA features (native install, native file sharing, offline mode)
+
 ## Display
 
 Open [`index.html`](index.html) with a browser.
