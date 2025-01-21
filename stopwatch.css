@@ -36,6 +36,7 @@
 /* Global variables */
 :root {
     --stopwatch-digit-divider-color: #000;
+    --global-animation: 0.2s ease-in-out;
 }
 
 /* Dark Mode enabled */
@@ -48,7 +49,6 @@
 div#stopwatch_digits_area {
     text-align: center;
     padding: var(--stopwatch-padding);
-    background: var(--main-color);
     margin: auto;
     max-width: 800px;
 }
@@ -75,7 +75,6 @@ ul#stopwatch_data_controls_area {
 ul#stopwatch_controls_area>button, ul#stopwatch_data_controls_area>button {
     box-shadow: 0 3px 1px -2px rgba(0, 0, 0, .2), 0 2px 2px 0 rgba(0, 0, 0, .14), 0 1px 5px 0 rgba(0, 0, 0, .12);
     background-color: var(--main-second-color);
-    transition: background-color 0.2s, color 0.2s;
     color: var(--text-color);
     margin: 0;
     font-size: 1rem;
@@ -89,13 +88,14 @@ ul#stopwatch_controls_area>button, ul#stopwatch_data_controls_area>button {
     width: 100%;
     height: 100%;
     padding-left: 1rem;
+    /* Animations */
+    transition: background-color var(--global-animation), color var(--global-animation);
 }
 
 ul#stopwatch_controls_area>button:hover,
 ul#stopwatch_controls_area>button:focus,
 ul#stopwatch_data_controls_area>button:hover,
 ul#stopwatch_data_controls_area>button:focus {
-    transition: background-color 0.2s, color 0.2s;
     color: var(--text-color);
     outline: 0;
 }
@@ -151,6 +151,8 @@ ul#stopwatch_laps_area>li {
     font-family: Roboto, "Helvetica Neue", sans-serif;
     font-size: 1.5rem;
     font-weight: 500;
+    /* Animations */
+    transition: color var(--global-animation);
 }
 
 ul#stopwatch_laps_area>li>div.stopwatch_time_container {
@@ -162,6 +164,8 @@ ul#stopwatch_laps_area>li>div.stopwatch_time_container>time {
     font-size: 2rem;
     font-weight: 900;
     color: var(--text-color);
+    /* Animations */
+    transition: color var(--global-animation);
 }
 
 ul#stopwatch_laps_area>li>div.stopwatch_time_container>div.stopwatch-remove-lap-cross,
@@ -174,6 +178,8 @@ ul#stopwatch_laps_area>li>div.stopwatch_time_container>div.stopwatch-remove-lap-
     margin-left: 1rem;
     opacity: 0.3;
     cursor: pointer;
+    /* Animations */
+    transition: background-color var(--global-animation);
 }
 
 ul#stopwatch_laps_area>li>div.stopwatch_time_container>div.stopwatch-remove-lap-cross-opposite {
@@ -236,13 +242,17 @@ div#stopwatch_digits_area>div.stopwatch_digits_divider {
     height: var(--stopwatch-digit-divider-height);
     width: calc(var(--stopwatch-digit-divider-height) / 10);
     margin: calc(var(--stopwatch-digit-divider-height) / 20);
+    /* Animations */
+    transition: height var(--global-animation), width var(--global-animation), margin var(--global-animation);
 }
 
 div#stopwatch_digits_area>div.stopwatch_digits_divider>span {
     position: absolute;
-    background: var(--stopwatch-digit-divider-color);
+    background-color: var(--stopwatch-digit-divider-color);
     height: calc(var(--stopwatch-digit-divider-height) / 20);
     width: calc(var(--stopwatch-digit-divider-height) / 20);
+    /* Animations */
+    transition: height var(--global-animation), width var(--global-animation), background-color width var(--global-animation);
 }
 
 div#stopwatch_digits_area>div.stopwatch_digits_divider>span.stopwatch_digits_divider_0 {
@@ -274,11 +284,16 @@ div#stopwatch_digits_area>div.stopwatch_digits_element {
     width: calc(var(--stopwatch-digit-divider-height) / 2);
     height: var(--stopwatch-digit-divider-height);
     margin: calc(var(--stopwatch-digit-divider-height) / 20);
+    /* Animations */
+    transition: height var(--global-animation), width var(--global-animation), margin var(--global-animation);
 }
 
 div#stopwatch_digits_area>div.stopwatch_digits_element>span {
     position: absolute;
-    background: transparent;
+    background-color: transparent;
+    /* Animations */
+    /* Disable background color animation because it looks bad when the time updates quickly */
+    transition: height var(--global-animation), width var(--global-animation), background-color 0s;
 }
 
 /* All the horizontal lines (0,1,2) [width, height] */
@@ -356,12 +371,12 @@ div#stopwatch_digits_area>div.stopwatch_digits_element.zero>span.stopwatch_digit
 div#stopwatch_digits_area>div.stopwatch_digits_element.zero>span.stopwatch_digits_element_4,
 div#stopwatch_digits_area>div.stopwatch_digits_element.zero>span.stopwatch_digits_element_5,
 div#stopwatch_digits_area>div.stopwatch_digits_element.zero>span.stopwatch_digits_element_6 {
-    background: var(--stopwatch-digit-divider-color);
+    background-color: var(--stopwatch-digit-divider-color);
 }
 
 div#stopwatch_digits_area>div.stopwatch_digits_element.one>span.stopwatch_digits_element_4,
 div#stopwatch_digits_area>div.stopwatch_digits_element.one>span.stopwatch_digits_element_6 {
-    background: var(--stopwatch-digit-divider-color);
+    background-color: var(--stopwatch-digit-divider-color);
 }
 
 div#stopwatch_digits_area>div.stopwatch_digits_element.two>span.stopwatch_digits_element_0,
@@ -369,7 +384,7 @@ div#stopwatch_digits_area>div.stopwatch_digits_element.two>span.stopwatch_digits
 div#stopwatch_digits_area>div.stopwatch_digits_element.two>span.stopwatch_digits_element_2,
 div#stopwatch_digits_area>div.stopwatch_digits_element.two>span.stopwatch_digits_element_4,
 div#stopwatch_digits_area>div.stopwatch_digits_element.two>span.stopwatch_digits_element_5 {
-    background: var(--stopwatch-digit-divider-color);
+    background-color: var(--stopwatch-digit-divider-color);
 }
 
 div#stopwatch_digits_area>div.stopwatch_digits_element.three>span.stopwatch_digits_element_0,
@@ -377,14 +392,14 @@ div#stopwatch_digits_area>div.stopwatch_digits_element.three>span.stopwatch_digi
 div#stopwatch_digits_area>div.stopwatch_digits_element.three>span.stopwatch_digits_element_2,
 div#stopwatch_digits_area>div.stopwatch_digits_element.three>span.stopwatch_digits_element_4,
 div#stopwatch_digits_area>div.stopwatch_digits_element.three>span.stopwatch_digits_element_6 {
-    background: var(--stopwatch-digit-divider-color);
+    background-color: var(--stopwatch-digit-divider-color);
 }
 
 div#stopwatch_digits_area>div.stopwatch_digits_element.four>span.stopwatch_digits_element_1,
 div#stopwatch_digits_area>div.stopwatch_digits_element.four>span.stopwatch_digits_element_3,
 div#stopwatch_digits_area>div.stopwatch_digits_element.four>span.stopwatch_digits_element_4,
 div#stopwatch_digits_area>div.stopwatch_digits_element.four>span.stopwatch_digits_element_6 {
-    background: var(--stopwatch-digit-divider-color);
+    background-color: var(--stopwatch-digit-divider-color);
 }
 
 div#stopwatch_digits_area>div.stopwatch_digits_element.five>span.stopwatch_digits_element_0,
@@ -392,7 +407,7 @@ div#stopwatch_digits_area>div.stopwatch_digits_element.five>span.stopwatch_digit
 div#stopwatch_digits_area>div.stopwatch_digits_element.five>span.stopwatch_digits_element_2,
 div#stopwatch_digits_area>div.stopwatch_digits_element.five>span.stopwatch_digits_element_3,
 div#stopwatch_digits_area>div.stopwatch_digits_element.five>span.stopwatch_digits_element_6 {
-    background: var(--stopwatch-digit-divider-color);
+    background-color: var(--stopwatch-digit-divider-color);
 }
 
 div#stopwatch_digits_area>div.stopwatch_digits_element.six>span.stopwatch_digits_element_0,
@@ -401,17 +416,17 @@ div#stopwatch_digits_area>div.stopwatch_digits_element.six>span.stopwatch_digits
 div#stopwatch_digits_area>div.stopwatch_digits_element.six>span.stopwatch_digits_element_3,
 div#stopwatch_digits_area>div.stopwatch_digits_element.six>span.stopwatch_digits_element_5,
 div#stopwatch_digits_area>div.stopwatch_digits_element.six>span.stopwatch_digits_element_6 {
-    background: var(--stopwatch-digit-divider-color);
+    background-color: var(--stopwatch-digit-divider-color);
 }
 
 div#stopwatch_digits_area>div.stopwatch_digits_element.seven>span.stopwatch_digits_element_0,
 div#stopwatch_digits_area>div.stopwatch_digits_element.seven>span.stopwatch_digits_element_4,
 div#stopwatch_digits_area>div.stopwatch_digits_element.seven>span.stopwatch_digits_element_6 {
-    background: var(--stopwatch-digit-divider-color);
+    background-color: var(--stopwatch-digit-divider-color);
 }
 
 div#stopwatch_digits_area>div.stopwatch_digits_element.eight>span {
-    background: var(--stopwatch-digit-divider-color);
+    background-color: var(--stopwatch-digit-divider-color);
 }
 
 div#stopwatch_digits_area>div.stopwatch_digits_element.nine>span.stopwatch_digits_element_0,
@@ -420,5 +435,5 @@ div#stopwatch_digits_area>div.stopwatch_digits_element.nine>span.stopwatch_digit
 div#stopwatch_digits_area>div.stopwatch_digits_element.nine>span.stopwatch_digits_element_3,
 div#stopwatch_digits_area>div.stopwatch_digits_element.nine>span.stopwatch_digits_element_4,
 div#stopwatch_digits_area>div.stopwatch_digits_element.nine>span.stopwatch_digits_element_6 {
-    background: var(--stopwatch-digit-divider-color);
+    background-color: var(--stopwatch-digit-divider-color);
 }

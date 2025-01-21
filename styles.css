@@ -31,6 +31,7 @@
     --button-color: #ffffff;
     --text-color: #000000;
     --heading-text-color: #5f6368;
+    --global-animation: 0.2s ease-in-out;
 }
 
 /* Dark Mode enabled */
@@ -59,7 +60,17 @@ body {
 
 header {
     padding: 1rem var(--main-padding);
+    /* Animations */
+    transition: padding var(--global-animation);
 }
+
+header>h1 {
+    color: var(--text-color);
+    font-size: 2rem;
+    line-height: 1.5;
+    /* Animations */
+    transition: color var(--global-animation);
+ }
 
 main {
     margin: 0;
@@ -68,19 +79,25 @@ main {
     min-height: 70vh;
     display: block;
     box-shadow: rgba(0, 0, 0, 0.2) 0px 3px 1px -2px, rgba(0, 0, 0, 0.14) 0px 2px 2px 0px, rgba(0, 0, 0, 0.12) 0px 1px 5px 0px;
+    /* Animations */
+    transition: padding var(--global-animation), background-color var(--global-animation);
 }
 
 main>section {
     margin: var(--main-padding) auto;
     max-width: 800px;
+    /* Animations */
+    transition: margin var(--global-animation);
 }
 
 main>section>h2 {
    color: var(--heading-text-color);
-   font-size: 16px;
+   font-size: 1rem;
    line-height: 1.5;
    margin-top: 1rem;
    margin-bottom: 1.5rem;
+   /* Animations */
+   transition: color var(--global-animation);
 }
 
 footer {
