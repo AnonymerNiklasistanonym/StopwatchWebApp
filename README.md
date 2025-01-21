@@ -14,6 +14,7 @@ A simple Javascript web app for a stopwatch.
 **Update 2025:**
 
 - Add PWA features (native install, native file sharing, offline mode)
+- Add local storage support which saves the state of the stopwatch across browser sessions
 
 ## Display
 

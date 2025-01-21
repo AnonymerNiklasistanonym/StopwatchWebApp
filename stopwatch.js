@@ -1,3 +1,11 @@
+const addTextToClipboard = async (text) => {
+  if ("clipboard" in navigator) {
+    await navigator.clipboard.writeText(text)
+  } else {
+    console.warn("Adding text to the clipboard is not supported")
+  }
+}
+
 /**
  * Stopwatch api implementation
  */
@@ -9,7 +17,27 @@ class StopwatchApi {
    */
   constructor (watchDiv, options) {
     // Initialize stopwatch
-    this.stopwatch = new Stopwatch()
+    const stopwatchState = localStorage.getItem("stopwatchState")
+    if (stopwatchState !== null) {
+      try {
+        const {
+          startedDate,
+          stoppedDate,
+          elapsedTime,
+          laps,
+        } = JSON.parse(stopwatchState)
+        if (elapsedTime > 0) {
+          this.stopwatch = new Stopwatch(startedDate, stoppedDate, elapsedTime, laps)
+        } else {
+          this.stopwatch = new Stopwatch()
+        }
+      } catch (err) {
+        console.error(Error(`Unable to parse the found stopwatchState ("${stopwatchState}")`, {cause:err}))
+        this.stopwatch = new Stopwatch()
+      }
+    } else {
+      this.stopwatch = new Stopwatch()
+    }
     // Create html structure for watch
     this.htmlDigitHandler = new HtmlDigitHandler(watchDiv, this.stopwatch)
     // Options
@@ -88,6 +116,10 @@ class HtmlLapHandler {
   createLaps () {
     this.lapsDivElement.id = 'stopwatch_laps_area'
     this.clearLaps()
+    // Add existing laps from the stopwatch
+    for (let i = 0; i < this.stopwatch.laps.length; i++) {
+      this.addLap(i, this.stopwatch.laps[i])
+    }
   }
   /**
    * Add lap
@@ -113,14 +145,7 @@ class HtmlLapHandler {
 
     // On click on the digits copy the displayed lap time to the clipboard
     timeElement.addEventListener("click", () => {
-      navigator.clipboard.writeText(timeElement.innerText).then(
-        () => {
-          console.debug("data written to clipboard")
-        },
-        () => {
-          console.error("unable to write data to clipboard")
-        }
-      )
+      addTextToClipboard(timeElement.innerText).catch(console.error)
     })
 
     const timeContainerElement = document.createElement('div')
@@ -332,18 +357,23 @@ class Stopwatch {
   /**
    * Creates an instance of Stopwatch.
    */
-  constructor () {
+  constructor (
+    startedDate = undefined,
+    stoppedDate = undefined,
+    elapsedTime = 0,
+    laps = [],
+  ) {
     // Declare class variables
     /**
      * The start date
      * @type {Date}
      */
-    this.startedDate = undefined
+    this.startedDate = startedDate
     /**
      * The stop date
      * @type {Date}
      */
-    this.stoppedDate = undefined
+    this.stoppedDate = stoppedDate
     /**
      * The start time (high resolution time stamp in ms)
      * @type {DOMHighResTimeStamp}
@@ -355,16 +385,18 @@ class Stopwatch {
      */
     this.stoppedTimeTimeStamp = 0
     /**
+     * The time the stopwatch already ran (in ms)
+     */
+    this.elapsedTime = elapsedTime
+    /**
      * The lap times (in ms)
      * @type {number[]}
      */
-    this.laps = []
+    this.laps = laps
     /**
      * Is the timer currently running
      */
     this.running = false
-    // Reset/Initialize watch
-    this.reset()
     // Reset event callbacks
     /**
      * Callback that is triggered when a lap was added
@@ -409,7 +441,7 @@ class Stopwatch {
    * Get the current time (in ms)
    */
   get currentTimeInMs () {
-    return (this.running ? window.performance.now() : this.stoppedTimeTimeStamp) - this.startedTimeTimeStamp
+    return this.elapsedTime + (this.running ? window.performance.now() : this.stoppedTimeTimeStamp) - this.startedTimeTimeStamp
   }
   /**
    * Get the current laps
@@ -450,12 +482,15 @@ class Stopwatch {
     this.startedDate = undefined
     this.stoppedDate = undefined
     // Reset time
+    this.elapsedTime = 0
     this.startedTimeTimeStamp = 0
     this.stoppedTimeTimeStamp = 0
     // Reset laps
     this.laps = []
     // Not running
     this.running = false
+    // Save state
+    this.saveState()
   }
   /**
    * Start stopwatch
@@ -473,6 +508,8 @@ class Stopwatch {
         this.startedDate = new Date()
       }
       this.startedTimeTimeStamp = startedTimeTimeStamp - (this.stoppedTimeTimeStamp - this.startedTimeTimeStamp)
+      // Save state
+      this.saveState()
       // Event listeners
       this.callbacksStart.forEach((callback) => callback(startedTimeTimeStamp, this.startedDate))
     }
@@ -485,6 +522,8 @@ class Stopwatch {
       this.running = false
       this.stoppedTimeTimeStamp = window.performance.now()
       this.stoppedDate = new Date()
+      // Save state
+      this.saveState()
       // Event listeners
       this.callbacksStop.forEach((callback) => callback(this.stoppedTimeTimeStamp, this.stoppedDate))
     }
@@ -516,6 +555,8 @@ class Stopwatch {
       return
     }
     const indexOfNewLap = this.laps.push(currentTime)
+    // Save state
+    this.saveState()
     // Event listeners
     this.callbacksAddLap.forEach((callback) => callback(indexOfNewLap - 1, currentTime))
   }
@@ -525,6 +566,8 @@ class Stopwatch {
    */
   removeLap (index) {
     const deletedLapTimeInMs = this.laps.splice(index, 1)
+    // Save state
+    this.saveState()
     // Event listeners
     this.callbacksRemoveLap.forEach((callback) => callback(index, deletedLapTimeInMs))
   }
@@ -533,6 +576,8 @@ class Stopwatch {
    */
   clearLaps () {
     this.laps = []
+    // Save state
+    this.saveState()
     // Event listeners
     this.callbacksClearLaps.forEach((callback) => callback())
   }
@@ -607,6 +652,19 @@ class Stopwatch {
         console.error(`The event '${eventName}' does not exist!`)
         break
     }
+  }
+  /**
+   * Save current state across browser sessions
+   */
+  saveState () {
+    localStorage.setItem("stopwatchState", JSON.stringify({
+      version: 1,
+      // State
+      startedDate: this.startedDate,
+      stoppedDate: this.stoppedDate,
+      elapsedTime: this.currentTimeInMs,
+      laps: this.laps,
+    }))
   }
 }
 
@@ -729,14 +787,7 @@ class HtmlDigitHandler {
           }
         })
         .join("")
-      navigator.clipboard.writeText(text).then(
-        () => {
-          console.debug("data written to clipboard")
-        },
-        () => {
-          console.error("unable to write data to clipboard")
-        }
-      )
+      addTextToClipboard(text).catch(console.error)
     })
   }
 }
