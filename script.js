@@ -36,7 +36,9 @@ if ('serviceWorker' in navigator) {
                       installingWorker.onstatechange = () => {
                           if (installingWorker.state === 'installed') {
                               if (navigator.serviceWorker.controller) {
-                                  console.log('Service Worker detected new content, refresh')
+                                  if (confirm('Service Worker detected new content, do you want to refresh?')) {
+                                    location.reload()
+                                  }
                               }
                           }
                       }
@@ -47,4 +49,6 @@ if ('serviceWorker' in navigator) {
               console.error('Service Worker registration failed:', error)
           })
   })
+} else {
+  console.warn('Service Workers are not supported')
 }
