@@ -27,7 +27,12 @@ class StopwatchApi {
           laps,
         } = JSON.parse(stopwatchState)
         if (elapsedTime > 0) {
-          this.stopwatch = new Stopwatch(startedDate, stoppedDate, elapsedTime, laps)
+          this.stopwatch = new Stopwatch(
+            startedDate ? new Date(startedDate) : undefined,
+            stoppedDate ? new Date(stoppedDate) : undefined,
+            elapsedTime,
+            laps,
+          )
         } else {
           this.stopwatch = new Stopwatch()
         }
@@ -366,12 +371,12 @@ class Stopwatch {
     // Declare class variables
     /**
      * The start date
-     * @type {Date}
+     * @type {Date | undefined}
      */
     this.startedDate = startedDate
     /**
      * The stop date
-     * @type {Date}
+     * @type {Date | undefined}
      */
     this.stoppedDate = stoppedDate
     /**
@@ -660,8 +665,8 @@ class Stopwatch {
     localStorage.setItem("stopwatchState", JSON.stringify({
       version: 1,
       // State
-      startedDate: this.startedDate,
-      stoppedDate: this.stoppedDate,
+      startedDate: this.startedDate?.toISOString(),
+      stoppedDate: this.stoppedDate?.toISOString(),
       elapsedTime: this.currentTimeInMs,
       laps: this.laps,
     }))

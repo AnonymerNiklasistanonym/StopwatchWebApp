@@ -1,7 +1,7 @@
 // Version of the service worker
 // Providing this makes sure that any version change even if only in external files triggers a new Service Worker
 // install event which in turn forces an automatic cache update
-const VERSION = "v1.1.4"
+const VERSION = "v1.1.5"
 
 // Name of the cache
 const CACHE_NAME = `${VERSION}-cache`
